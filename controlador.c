@@ -42,18 +42,6 @@ void pegar_tubo() { //verificado
         
         double frdsvalue = wb_distance_sensor_get_value(frds);
         double fldsvalue = wb_distance_sensor_get_value(flds);
-        
-        if(frdsvalue > fldsvalue) {
-            while(wb_robot_step(TIME_STEP) != -1) {
-                double nfrds = wb_distance_sensor_get_value(frds), nflds = wb_distance_sensor_get_value(flds);
-                wb_motor_set_velocity(left_motor, 1);
-                wb_motor_set_velocity(right_motor, 1.5);
-                if(fabs(nfrds - nflds) < epsilon) {
-                    wb_motor_set_velocity(left_motor, 0);
-                    wb_motor_set_velocity(right_motor, 1);
-                }
-            }
-        }
         wb_motor_set_velocity(left_motor, 1);
         wb_motor_set_velocity(right_motor, 1);
         
@@ -64,7 +52,7 @@ void pegar_tubo() { //verificado
             while(wb_robot_step(TIME_STEP) != -1) {
                 double k = wb_position_sensor_get_value(pos);
                 wb_motor_set_velocity(empilhadeira, -0.3);
-                if(k < -0.03) {
+                if(k < -0.12) {
                     wb_motor_set_velocity(empilhadeira, 0);
                     break;
                 }
@@ -77,7 +65,7 @@ void pegar_tubo() { //verificado
         wb_motor_set_velocity(right_motor, 0.5);
         double frdsvalue = wb_distance_sensor_get_value(frds);
         double fldsvalue = wb_distance_sensor_get_value(flds);
-        if(frdsvalue < 25 && fldsvalue < 25){
+        if(frdsvalue < 20 && fldsvalue < 20){
             wb_motor_set_velocity(left_motor, 0);
             wb_motor_set_velocity(right_motor, 0);
 
@@ -86,7 +74,7 @@ void pegar_tubo() { //verificado
                 double k = wb_position_sensor_get_value(pos);
                 //printf("%lf\n", k); 
                 wb_motor_set_velocity(empilhadeira, 0.3);
-                if(k > 0.16) {
+                if(k > 0.15) {
                     break;
                 }
             }
@@ -113,7 +101,7 @@ void entregar_tubo() { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
         double k = wb_position_sensor_get_value(pos);
         wb_motor_set_velocity(empilhadeira, -0.3);
-        if(k < 0.1) {
+        if(k < 0.02) {
             wb_motor_set_velocity(empilhadeira, 0);
             break;
         }
@@ -134,7 +122,7 @@ void entregar_tubo() { //verificado
             while(wb_robot_step(TIME_STEP) != -1) {
                 double k = wb_position_sensor_get_value(pos);
                 wb_motor_set_velocity(empilhadeira, 0.3);
-                if(k > 0.16) {
+                if(k > 0.1) {
                     wb_motor_set_velocity(empilhadeira, 0);
                     break;
                 }   
@@ -686,7 +674,7 @@ void vit3(rgb cor_min, rgb cor_max) { //verificado
                     wb_motor_set_velocity(right_motor, -2);
                     wb_motor_set_velocity(left_motor, -2);
                     j++;
-                    if(j == 40) {
+                    if(j == 62) {
                         wb_motor_set_velocity(right_motor, 0);
                         wb_motor_set_velocity(left_motor, 0);
                         break;
@@ -729,7 +717,7 @@ void vit3(rgb cor_min, rgb cor_max) { //verificado
                     wb_motor_set_velocity(right_motor, -2);
                     wb_motor_set_velocity(left_motor, -2);
                     j++;
-                    if(j == 40) {
+                    if(j == 62) {
                         wb_motor_set_velocity(right_motor, 0);
                         wb_motor_set_velocity(left_motor, 0);
                         break;
@@ -790,12 +778,12 @@ void vit3_1() {
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 2);
         wb_motor_set_velocity(left_motor, 2);
-        if((color_detected == 1 && j == 14) || (color_detected == 2 && j == 8) || (color_detected == 3 && j == 2)) {
+        j++;
+        if((color_detected == 1 && j == 14) || (color_detected == 2 && j == 8) || (color_detected == 3 && j == 1)) {
             wb_motor_set_velocity(right_motor, 0);
             wb_motor_set_velocity(left_motor, 0);
             break;
         }
-        j++;
     }
     _giro();
 }
@@ -842,6 +830,7 @@ int main(int argc, char **argv) {
         }
         double length = odometria();
         printf("achado %lf\n", length);
+        length = 18;
         rgb mn, mx;
         if(length > 20) { //BLUE
             rgb tmp1 = {0, 0, 10000}, tmp2 = {4000, 4000, 15000};
