@@ -183,7 +183,9 @@ double odometria() { //verificado
             //tube = 2.0*(end - start) + 27;
             tube = (cur - pos_inicial) * 0.0374 * 100;
             if(tube < 10) {
-                via2();
+                if(!via2()) {
+                    exit(0);
+                }
                 return odometria();
             }
             return tube;
@@ -196,7 +198,9 @@ double odometria() { //verificado
 
     tube = ((end - pos_inicial) * 0.0374) * 100;
     if(tube < 10) {
-        via2();
+        if(!via2()) {
+            exit(0);
+        }
         return odometria();
     }
  
