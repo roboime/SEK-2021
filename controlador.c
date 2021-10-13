@@ -13,9 +13,9 @@
  
 #define TIME_STEP 32
  
-int width, height, tamanhodorobo = 27, d180 = 0, color_detected;
-WbDeviceTag right_camera, left_camera, left_motor, right_motor, empilhadeira, frds, flds, ltds, lbds, pos, iu;
-double epsilon = 1e-4;
+int width, height, tamanhodorobo = 27, d180 = 1, color_detected;
+WbDeviceTag right_camera, left_camera, left_motor, right_motor, empilhadeira, frds, flds, ltds, lbds, pos, iu, left_pos, right_pos;
+double epsilon = 3;
  
 typedef struct _rgb {
     int r, g, b;
@@ -43,6 +43,17 @@ void pegar_tubo() { //verificado
         double frdsvalue = wb_distance_sensor_get_value(frds);
         double fldsvalue = wb_distance_sensor_get_value(flds);
         
+        if(frdsvalue > fldsvalue) {
+            while(wb_robot_step(TIME_STEP) != -1) {
+                double nfrds = wb_distance_sensor_get_value(frds), nflds = wb_distance_sensor_get_value(flds);
+                wb_motor_set_velocity(left_motor, 1);
+                wb_motor_set_velocity(right_motor, 1.5);
+                if(fabs(nfrds - nflds) < epsilon) {
+                    wb_motor_set_velocity(left_motor, 0);
+                    wb_motor_set_velocity(right_motor, 1);
+                }
+            }
+        }
         wb_motor_set_velocity(left_motor, 1);
         wb_motor_set_velocity(right_motor, 1);
         
@@ -135,11 +146,16 @@ void entregar_tubo() { //verificado
  
 double odometria() { //verificado
     double tube; 
+    double pos_inicial = wb_position_sensor_get_value(left_pos);
+
     clock_t start = clock();
+    printf("start %lf\n", pos_inicial);
  
     while(wb_robot_step(TIME_STEP) != -1) {
+        double cur = wb_position_sensor_get_value(left_pos);
         double ltdsvalue = wb_distance_sensor_get_value(ltds);
         double lbdsvalue = wb_distance_sensor_get_value(lbds);
+        printf("%lf\n", cur);
         wb_motor_set_velocity(left_motor, 2);
         wb_motor_set_velocity(right_motor, 2);
  
@@ -164,16 +180,25 @@ double odometria() { //verificado
             wb_motor_set_velocity(right_motor, 0);
  
             clock_t end = clock();
-            tube = 2.0*(end - start) + 27;
- 
+            //tube = 2.0*(end - start) + 27;
+            tube = (cur - pos_inicial) * 0.0374 * 100;
+            if(tube < 10) {
+                via2();
+                return odometria();
+            }
             return tube;
         }
 
     }
  
-    clock_t end = clock();
+    //clock_t end = clock();
+    double end = wb_position_sensor_get_value(left_pos);
 
-    tube = 2.0*(end - start)*3.5/1000;
+    tube = ((end - pos_inicial) * 0.0374) * 100;
+    if(tube < 10) {
+        via2();
+        return odometria();
+    }
  
     return tube; 
 }
@@ -245,8 +270,8 @@ void alinhar_chao() {//verificado
  
 void alinhar(rgb min, rgb max) { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 2);
-        wb_motor_set_velocity(left_motor, 2);
+        wb_motor_set_velocity(right_motor, 4);
+        wb_motor_set_velocity(left_motor, 4);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         rgb avg = {(lc.r + rc.r) / 2, (lc.g + rc.g) / 2, (lc.b + rc.b) / 2};
         //printf("avg %d %d %d\n", avg.r, avg.g, avg.b);
@@ -432,12 +457,40 @@ void vi0() { //verificado
         if((rc.r < 9000 && rc.g < 8000 && rc.b < 7000) || (lc.r < 9000 && lc.g < 8000 && lc.b < 7000)) {
             break;
         }
+        wb_motor_set_velocity(right_motor, 6);
+        wb_motor_set_velocity(left_motor, 6);
+    }
+    alinhar_chao();
+}
+
+void vi0_tubo() { //verificado
+    while(wb_robot_step(TIME_STEP) != -1) {
+        rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
+        if((rc.r < 7200 && rc.g < 7200 && rc.b < 7200) || (lc.r < 7200 && lc.g < 7200 && lc.b < 7200)) {
+            alinhar_chao();
+            giro_();
+            vi0();
+            return;
+        }
+        if(rc.r >= verde_min.r && rc.r <= verde_max.r && rc.g >= verde_min.g && rc.g <= verde_max.g && rc.b >= verde_min.b && rc.b <= verde_max.b) {
+            _giro();
+            vi0();
+            return;
+        }
+        if(lc.r >= verde_min.r && lc.r <= verde_max.r && lc.g >= verde_min.g && lc.g <= verde_max.g && lc.b >= verde_min.b && lc.b <= verde_max.b) {
+            _giro_();
+            vi0();
+            return;
+        }
+        if((rc.r < 9000 && rc.g < 8000 && rc.b < 7000) || (lc.r < 9000 && lc.g < 8000 && lc.b < 7000)) {
+            break;
+        }
         wb_motor_set_velocity(right_motor, 4);
         wb_motor_set_velocity(left_motor, 4);
     }
     alinhar_chao();
 }
- 
+
 void via1() { //verificado
     wb_motor_set_velocity(right_motor, -2);
     wb_motor_set_velocity(left_motor, -2);
@@ -450,8 +503,8 @@ void via1() { //verificado
     }
     wb_inertial_unit_disable(iu);
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 4);
-        wb_motor_set_velocity(left_motor, 4);
+        wb_motor_set_velocity(right_motor, 6);
+        wb_motor_set_velocity(left_motor, 6);
         double fr = wb_distance_sensor_get_value(frds), fl = wb_distance_sensor_get_value(flds);
         double avg = (fr + fl) / 2;
         if(avg < 200) {
@@ -488,8 +541,8 @@ void via1_tube() { //verificado
             wb_motor_set_velocity(right_motor, 0.5);
             wb_motor_set_velocity(left_motor, 0.5);
         } else {
-            wb_motor_set_velocity(right_motor, 4);
-            wb_motor_set_velocity(left_motor, 4);
+            wb_motor_set_velocity(right_motor, 3);
+            wb_motor_set_velocity(left_motor, 3);
         }
         double fr = wb_distance_sensor_get_value(frds), fl = wb_distance_sensor_get_value(flds);
         double avgg = (fr + fl) / 2;
@@ -508,10 +561,10 @@ void via1_tube() { //verificado
     giro_();
 }
 
-void via2() { //verificado
+int via2() { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 3.5);
-        wb_motor_set_velocity(left_motor, 3.5);
+        wb_motor_set_velocity(right_motor, 6);
+        wb_motor_set_velocity(left_motor, 6);
         double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(frds);
         if(dsl > 200 || dsr < 200) {
             wb_motor_set_velocity(right_motor, 0);
@@ -523,13 +576,13 @@ void via2() { //verificado
         if(md.r < 9000 && md.g < 8000 && md.b < 7000) {
             wb_motor_set_velocity(right_motor, 0);
             wb_motor_set_velocity(left_motor, 0);
-            return;
+            return 0;
         }
     }
     double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(frds), dsb = wb_distance_sensor_get_value(lbds);
     if(dsl > 200) {
         if(dsb < 200 && dsr > 200) {
-            return;
+            return 1;
         } else if(dsb < 200 && dsr < 200) {
             giro_();
             via2();
@@ -550,6 +603,7 @@ void via2() { //verificado
     }
     wb_motor_set_velocity(right_motor, 0);
     wb_motor_set_velocity(left_motor, 0);
+    return 1;
 }
  
 void vit1() { //verificado
@@ -558,8 +612,8 @@ void vit1() { //verificado
         giro_();
     }
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 5);
-        wb_motor_set_velocity(left_motor, 5);
+        wb_motor_set_velocity(right_motor, 8);
+        wb_motor_set_velocity(left_motor, 8);
         rgb lc = getrgbs(left_camera), rc = getrgbs(right_camera);
         rgb avg = {(lc.r + rc.r) / 2, (lc.g + rc.g) / 2, (lc.b + rc.b) / 2};
         //printf("avg %d %d %d\n", avg.r, avg.g, avg.b);
@@ -574,10 +628,21 @@ void vit1() { //verificado
 }
  
 void vit3(rgb cor_min, rgb cor_max) { //verificado
-    giro_();
+    _giro();
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 3);
-        wb_motor_set_velocity(left_motor, 3);
+        wb_motor_set_velocity(right_motor, 4);
+        wb_motor_set_velocity(left_motor, 4);
+        rgb rrc = getrgbs(right_camera), llc = getrgbs(left_camera);
+        rgb avg = {(llc.r + rrc.r) / 2, (llc.g + rrc.g) / 2, (llc.b + rrc.b) / 2};
+        if(avg.r <= 9000 && avg.g <= 8000 && avg.b <= 7000) {
+            wb_motor_set_velocity(right_motor, 0);
+            wb_motor_set_velocity(left_motor, 0);
+            break;
+        }
+    }
+    while(wb_robot_step(TIME_STEP) != -1) {
+        wb_motor_set_velocity(right_motor, 4);
+        wb_motor_set_velocity(left_motor, 4);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         //printf("right %d %d %d\n", rc.r, rc.g, rc.b);
         //printf("left %d %d %d\n", lc.r, lc.g, lc.b);
@@ -748,11 +813,15 @@ int main(int argc, char **argv) {
     right_motor = wb_robot_get_device("RightWheel");
     empilhadeira = wb_robot_get_device("EMPLinearMotor");
     iu = wb_robot_get_device("inertial_unit");
+    left_pos = wb_robot_get_device("LWpossensor");
+    right_pos = wb_robot_get_device("RWpossensor");
     wb_distance_sensor_enable(frds, TIME_STEP);
     wb_distance_sensor_enable(flds, TIME_STEP);
     wb_distance_sensor_enable(ltds, TIME_STEP);
     wb_distance_sensor_enable(lbds, TIME_STEP);
     wb_position_sensor_enable(pos, TIME_STEP);
+    wb_position_sensor_enable(left_pos, TIME_STEP);
+    wb_position_sensor_enable(right_pos, TIME_STEP);
     wb_camera_enable(right_camera, TIME_STEP);
     wb_camera_enable(left_camera, TIME_STEP);
     wb_motor_set_position(left_motor, INFINITY);
@@ -761,89 +830,104 @@ int main(int argc, char **argv) {
     wb_motor_set_velocity(left_motor, 0.0);
     wb_motor_set_velocity(right_motor, 0.0);
     wb_motor_set_velocity(empilhadeira, 0.0);   
-
-    vi0();
-    via1(); 
-    via2();
-    double length = odometria();
-    rgb mn, mx;
-    if(length > 20) { //BLUE
-        rgb tmp1 = {0, 0, 10000}, tmp2 = {4000, 4000, 15000};
-        mn = tmp1;
-        mx = tmp2;
-        color_detected = 1;
-        printf("BLUE\n");
-    } else if(length > 15) { //RED
-        rgb tmp1 = {10000, 0, 0}, tmp2 = {15000, 4000, 4000};
-        mn = tmp1;
-        mx = tmp2;
-        color_detected = 2;
-        printf("RED\n");
-    } else { //YELLOW
-        rgb tmp1 = {10000, 10000, 0}, tmp2 = {15000, 15000, 4000};
-        mn = tmp1;
-        mx = tmp2;
-        color_detected = 3;
-        printf("YELLOW\n");
-    }
-    vit1();
-    vit3(mn, mx);
-    vit3_1();
-    pegar_tubo();
-    int j = 0;
-    while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, -2);
-        wb_motor_set_velocity(left_motor, -2);
-        j++;
-        if(j == 100) {
+    while(true) {
+        vi0();
+        via1(); 
+        if(!via2()) {
             break;
         }
-    }
-    vi0();
-    via1_tube();
-
-    while(wb_robot_step(TIME_STEP) != -1) {
-        rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
-        rgb md = {(rc.r + lc.r) / 2, (rc.g + lc.g) / 2, (rc.b + lc.b) / 2};
-        if(md.r < 9000 && md.g < 8000 && md.b < 7000) {
-            wb_motor_set_velocity(right_motor, 0);
-            wb_motor_set_velocity(left_motor, 0);
-            break;
+        double length = odometria();
+        printf("achado %lf\n", length);
+        rgb mn, mx;
+        if(length > 20) { //BLUE
+            rgb tmp1 = {0, 0, 10000}, tmp2 = {4000, 4000, 15000};
+            mn = tmp1;
+            mx = tmp2;
+            color_detected = 1;
+            printf("BLUE\n");
+        } else if(length > 15) { //RED
+            rgb tmp1 = {10000, 0, 0}, tmp2 = {15000, 4000, 4000};
+            mn = tmp1;
+            mx = tmp2;
+            color_detected = 2;
+            printf("RED\n");
+        } else { //YELLOW
+            rgb tmp1 = {10000, 10000, 0}, tmp2 = {15000, 15000, 4000};
+            mn = tmp1;
+            mx = tmp2;
+            color_detected = 3;
+            printf("YELLOW\n");
         }
-        via2();
-        double length2 = odometria();
-        printf("%lf %lf\n", length, length2);
-        if(fabs(length - length2) < 3) {
-            printf("aousdaoisjd\n");
-            int j = 0;
-            while(wb_robot_step(TIME_STEP) != -1) {
-                wb_motor_set_velocity(right_motor, -2);
-                wb_motor_set_velocity(left_motor, -2);
-                j++;
-                double ltdsvalue = wb_distance_sensor_get_value(ltds);
-                if(ltdsvalue < 200 && j > 3) {
-                    wb_motor_set_velocity(right_motor, 0);
-                    wb_motor_set_velocity(left_motor, 0);
-                    break;
-                }
+        vit1();
+        vit3(mn, mx);
+        vit3_1();
+        pegar_tubo();
+        int j = 0;
+        while(wb_robot_step(TIME_STEP) != -1) {
+            wb_motor_set_velocity(right_motor, -2);
+            wb_motor_set_velocity(left_motor, -2);
+            j++;
+            if(j == 100) {
+                break;
             }
-            j = 0;
-            while(wb_robot_step(TIME_STEP) != -1) {
-                wb_motor_set_velocity(right_motor, 2);
-                wb_motor_set_velocity(left_motor, 2);
-                j++;
-                if((color_detected == 1 && j == 20) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 1)) {
-                    wb_motor_set_velocity(right_motor, 0);
-                    wb_motor_set_velocity(left_motor, 0);
-                    break;
-                }
+        }
+        vi0_tubo();
+        via1_tube();
+
+        while(wb_robot_step(TIME_STEP) != -1) {
+            rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
+            rgb md = {(rc.r + lc.r) / 2, (rc.g + lc.g) / 2, (rc.b + lc.b) / 2};
+            if(md.r < 9000 && md.g < 8000 && md.b < 7000) {
+                wb_motor_set_velocity(right_motor, 0);
+                wb_motor_set_velocity(left_motor, 0);
+                break;
             }
-            _giro();
-            entregar_tubo();
-            break;
+            via2();
+            double length2 = odometria();
+            printf("%lf %lf\n", length, length2);
+            if(fabs(length - length2) < 3) {
+                printf("aousdaoisjd\n");
+                int j = 0;
+                while(wb_robot_step(TIME_STEP) != -1) {
+                    wb_motor_set_velocity(right_motor, -2);
+                    wb_motor_set_velocity(left_motor, -2);
+                    j++;
+                    double ltdsvalue = wb_distance_sensor_get_value(ltds);
+                    if(ltdsvalue < 200 && j > 3) {
+                        wb_motor_set_velocity(right_motor, 0);
+                        wb_motor_set_velocity(left_motor, 0);
+                        break;
+                    }
+                }
+                j = 0;
+                while(wb_robot_step(TIME_STEP) != -1) {
+                    wb_motor_set_velocity(right_motor, 2);
+                    wb_motor_set_velocity(left_motor, 2);
+                    j++;
+                    if((color_detected == 1 && j == 20) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 1)) {
+                        wb_motor_set_velocity(right_motor, 0);
+                        wb_motor_set_velocity(left_motor, 0);
+                        break;
+                    }
+                }
+                _giro();
+                entregar_tubo();
+                break;
+            }
+        }
+        _giro_();
+        j = 0;
+        while(wb_robot_step(TIME_STEP) != -1) {
+            wb_motor_set_velocity(right_motor, 6);
+            wb_motor_set_velocity(left_motor, 6);
+            j++;
+            if(j == 200) {
+                wb_motor_set_velocity(right_motor, 0);
+                wb_motor_set_velocity(left_motor, 0);
+                break;
+            }
         }
     }
-    _giro_();
     wb_robot_cleanup();
     return 0;
 }
