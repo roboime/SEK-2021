@@ -437,8 +437,8 @@ void _giro_() { //verificado
 void vi0() { //verificado
     wb_motor_set_position(empilhadeira, INFINITY);
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 6);
-        wb_motor_set_velocity(left_motor, 6);
+        wb_motor_set_velocity(right_motor, 8);
+        wb_motor_set_velocity(left_motor, 8);
         double dis = wb_distance_sensor_get_value(fmds);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         printf("%lf\n", dis);
@@ -495,8 +495,8 @@ void vi0() { //verificado
 void vi0_tubo() { //verificado
     viuchao = 0;
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 3);
-        wb_motor_set_velocity(left_motor, 3);
+        wb_motor_set_velocity(right_motor, 5);
+        wb_motor_set_velocity(left_motor, 5);
         double dis = wb_distance_sensor_get_value(fmds);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         printf("right %d %d %d\n", rc.r, rc.g, rc.b);
@@ -932,6 +932,17 @@ int main(int argc, char **argv) {
         vit1();
         vit3(mn, mx);
         vit3_1();
+        int _ = 0;
+        while(wb_robot_step(TIME_STEP) != -1) {
+            wb_motor_set_velocity(right_motor, -2);
+            wb_motor_set_velocity(left_motor, -2);
+            _++;
+            if(_ == 25) {
+                wb_motor_set_velocity(right_motor, 0);
+                wb_motor_set_velocity(left_motor, 0);
+                break;
+            }
+        }
         pegar_tubo();
         int j = 0;
 
