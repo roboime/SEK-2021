@@ -74,7 +74,7 @@ void pegar_tubo() { //verificado
                 double k = wb_position_sensor_get_value(pos);
                 //printf("%lf\n", k); 
                 wb_motor_set_velocity(empilhadeira, 0.3);
-                if(k > 0.15) {
+                if(k > 0.17) {
                     break;
                 }
             }
@@ -101,7 +101,7 @@ void entregar_tubo() { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
         double k = wb_position_sensor_get_value(pos);
         wb_motor_set_velocity(empilhadeira, -0.3);
-        if(k < 0.02) {
+        if(k < 0.014) {
             wb_motor_set_velocity(empilhadeira, 0);
             break;
         }
@@ -428,6 +428,7 @@ void _giro_() { //verificado
 }
  
 void vi0() { //verificado
+    wb_motor_set_position(empilhadeira, INFINITY);
     while(wb_robot_step(TIME_STEP) != -1) {
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         if((rc.r < 7200 && rc.g < 7200 && rc.b < 7200) || (lc.r < 7200 && lc.g < 7200 && lc.b < 7200)) {
@@ -555,8 +556,8 @@ void via1_tube() { //verificado
 
 int via2() { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 6);
-        wb_motor_set_velocity(left_motor, 6);
+        wb_motor_set_velocity(right_motor, 5);
+        wb_motor_set_velocity(left_motor, 5);
         double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(frds);
         if(dsl > 200 || dsr < 200) {
             wb_motor_set_velocity(right_motor, 0);
@@ -621,6 +622,7 @@ void vit1() { //verificado
  
 void vit3(rgb cor_min, rgb cor_max) { //verificado
     _giro();
+    d180 = 1;
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 4);
         wb_motor_set_velocity(left_motor, 4);
@@ -830,7 +832,7 @@ int main(int argc, char **argv) {
         }
         double length = odometria();
         printf("achado %lf\n", length);
-        length = 18;
+        //length = 18;
         rgb mn, mx;
         if(length > 20) { //BLUE
             rgb tmp1 = {0, 0, 10000}, tmp2 = {4000, 4000, 15000};
