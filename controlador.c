@@ -130,7 +130,7 @@ void entregar_tubo() { //verificado
             int j = 0;
             while(wb_robot_step(TIME_STEP) != -1) {
                 j++;
-                if(j == 40) {
+                if(j == 60) {
                     break;
                 }
             }
@@ -142,7 +142,7 @@ void entregar_tubo() { //verificado
 double odometria() { //verificado
     double tube; 
     double pos_inicial = wb_position_sensor_get_value(left_pos);
- 
+
     printf("start %lf\n", pos_inicial);
  
     while(wb_robot_step(TIME_STEP) != -1) {
@@ -184,7 +184,7 @@ double odometria() { //verificado
         }
 
     }
-
+ 
     double end = wb_position_sensor_get_value(left_pos);
 
     tube = ((end - pos_inicial) * 0.0374) * 100;
@@ -999,7 +999,7 @@ int main(int argc, char **argv) {
                     wb_motor_set_velocity(right_motor, 2);
                     wb_motor_set_velocity(left_motor, 2);
                     j++;
-                    if((color_detected == 1 && j == 19) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 1)) {
+                    if((color_detected == 1 && j == 19) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 3)) {
                         wb_motor_set_velocity(right_motor, 0);
                         wb_motor_set_velocity(left_motor, 0);
                         break;
