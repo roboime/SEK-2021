@@ -13,8 +13,8 @@
  
 #define TIME_STEP 32
  
-int width, height, tamanhodorobo = 27, d180 = 1, color_detected;
-WbDeviceTag right_camera, left_camera, left_motor, right_motor, empilhadeira, frds, flds, ltds, lbds, pos, iu, left_pos, right_pos;
+int width, height, tamanhodorobo = 27, d180 = 1, color_detected, viuchao = 0;
+WbDeviceTag right_camera, left_camera, left_motor, right_motor, empilhadeira, frds, flds, fmds, ltds, lbds, pos, iu, left_pos, right_pos;
 double epsilon = 3;
  
 typedef struct _rgb {
@@ -130,7 +130,7 @@ void entregar_tubo() { //verificado
             int j = 0;
             while(wb_robot_step(TIME_STEP) != -1) {
                 j++;
-                if(j == 20) {
+                if(j == 40) {
                     break;
                 }
             }
@@ -437,64 +437,124 @@ void _giro_() { //verificado
 void vi0() { //verificado
     wb_motor_set_position(empilhadeira, INFINITY);
     while(wb_robot_step(TIME_STEP) != -1) {
-        rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
-        if((rc.r < 7200 && rc.g < 7200 && rc.b < 7200) || (lc.r < 7200 && lc.g < 7200 && lc.b < 7200)) {
-            alinhar_chao();
-            giro_();
-            vi0();
-            return;
-        }
-        if(rc.r >= verde_min.r && rc.r <= verde_max.r && rc.g >= verde_min.g && rc.g <= verde_max.g && rc.b >= verde_min.b && rc.b <= verde_max.b) {
-            _giro();
-            vi0();
-            return;
-        }
-        if(lc.r >= verde_min.r && lc.r <= verde_max.r && lc.g >= verde_min.g && lc.g <= verde_max.g && lc.b >= verde_min.b && lc.b <= verde_max.b) {
-            _giro_();
-            vi0();
-            return;
-        }
-        if((rc.r < 9000 && rc.g < 8000 && rc.b < 7000) || (lc.r < 9000 && lc.g < 8000 && lc.b < 7000)) {
-            break;
-        }
         wb_motor_set_velocity(right_motor, 6);
         wb_motor_set_velocity(left_motor, 6);
+        double dis = wb_distance_sensor_get_value(fmds);
+        rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
+        printf("%lf\n", dis);
+        if(dis > 100) {
+            int j = 0;
+            while(wb_robot_step(TIME_STEP) != -1) {
+                wb_motor_set_velocity(right_motor, -2);
+                wb_motor_set_velocity(left_motor, -2);
+                j++;
+                if(j == 55) {
+                    wb_motor_set_velocity(right_motor, 0);
+                    wb_motor_set_velocity(left_motor, 0);
+                    break;
+                }
+            }
+            viuchao = 1;
+            giro_();
+        }
+        if((rc.r < 5000 && rc.g < 5000 && rc.b < 5000) || (lc.r < 5000 && lc.g < 5000 && lc.b < 5000)) {
+            int j = 0;
+            while(wb_robot_step(TIME_STEP) != -1) {
+                wb_motor_set_velocity(right_motor, -2);
+                wb_motor_set_velocity(left_motor, -2);
+                j++;
+                if(j == 30) {
+                    wb_motor_set_velocity(right_motor, 0);
+                    wb_motor_set_velocity(left_motor, 0);
+                    break;
+                }
+            }
+            giro_();
+        }
+        if((rc.r >= verde_min.r && rc.r <= verde_max.r && rc.g >= verde_min.g && rc.g <= verde_max.g && rc.b >= verde_min.b && rc.b <= verde_max.b) || (lc.r >= verde_min.r && lc.r <= verde_max.r && lc.g >= verde_min.g && lc.g <= verde_max.g && lc.b >= verde_min.b && lc.b <= verde_max.b)) {
+            if(viuchao) {
+                return;
+            } else {
+                int j = 0;
+                while(wb_robot_step(TIME_STEP) != -1) {
+                    wb_motor_set_velocity(right_motor, -2);
+                    wb_motor_set_velocity(left_motor, -2);
+                    j++;
+                    if(j == 30) {
+                        wb_motor_set_velocity(right_motor, 0);
+                        wb_motor_set_velocity(left_motor, 0);
+                        break;
+                    }
+                }
+                giro_();
+            }
+        }
     }
-    alinhar_chao();
 }
 
 void vi0_tubo() { //verificado
+    viuchao = 0;
     while(wb_robot_step(TIME_STEP) != -1) {
+        wb_motor_set_velocity(right_motor, 3);
+        wb_motor_set_velocity(left_motor, 3);
+        double dis = wb_distance_sensor_get_value(fmds);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
-        if((rc.r < 7200 && rc.g < 7200 && rc.b < 7200) || (lc.r < 7200 && lc.g < 7200 && lc.b < 7200)) {
-            alinhar_chao();
+        printf("right %d %d %d\n", rc.r, rc.g, rc.b);
+        printf("left %d %d %d\n", lc.r, lc.g, lc.b);
+        if(dis > 100) {
+            int j = 0;
+            while(wb_robot_step(TIME_STEP) != -1) {
+                wb_motor_set_velocity(right_motor, -2);
+                wb_motor_set_velocity(left_motor, -2);
+                j++;
+                if(j == 55) {
+                    wb_motor_set_velocity(right_motor, 0);
+                    wb_motor_set_velocity(left_motor, 0);
+                    break;
+                }
+            }
+            viuchao = 1;
             giro_();
-            vi0();
-            return;
         }
-        if(rc.r >= verde_min.r && rc.r <= verde_max.r && rc.g >= verde_min.g && rc.g <= verde_max.g && rc.b >= verde_min.b && rc.b <= verde_max.b) {
-            _giro();
-            vi0();
-            return;
+        if((rc.r < 5000 && rc.g < 5000 && rc.b < 5000) || (lc.r < 5000 && lc.g < 5000 && lc.b < 5000)) {
+            int j = 0;
+            while(wb_robot_step(TIME_STEP) != -1) {
+                wb_motor_set_velocity(right_motor, -2);
+                wb_motor_set_velocity(left_motor, -2);
+                j++;
+                if(j == 30) {
+                    wb_motor_set_velocity(right_motor, 0);
+                    wb_motor_set_velocity(left_motor, 0);
+                    break;
+                }
+            }
+            giro_();
         }
-        if(lc.r >= verde_min.r && lc.r <= verde_max.r && lc.g >= verde_min.g && lc.g <= verde_max.g && lc.b >= verde_min.b && lc.b <= verde_max.b) {
-            _giro_();
-            vi0();
-            return;
+        if((rc.r >= verde_min.r && rc.r <= verde_max.r && rc.g >= verde_min.g && rc.g <= verde_max.g && rc.b >= verde_min.b && rc.b <= verde_max.b) || (lc.r >= verde_min.r && lc.r <= verde_max.r && lc.g >= verde_min.g && lc.g <= verde_max.g && lc.b >= verde_min.b && lc.b <= verde_max.b)) {
+            if(viuchao) {
+                return;
+            } else {
+                int j = 0;
+                while(wb_robot_step(TIME_STEP) != -1) {
+                    wb_motor_set_velocity(right_motor, -2);
+                    wb_motor_set_velocity(left_motor, -2);
+                    j++;
+                    if(j == 30) {
+                        wb_motor_set_velocity(right_motor, 0);
+                        wb_motor_set_velocity(left_motor, 0);
+                        break;
+                    }
+                }
+                giro_();
+            }
         }
-        if((rc.r < 9000 && rc.g < 8000 && rc.b < 7000) || (lc.r < 9000 && lc.g < 8000 && lc.b < 7000)) {
-            break;
-        }
-        wb_motor_set_velocity(right_motor, 4);
-        wb_motor_set_velocity(left_motor, 4);
     }
-    alinhar_chao();
 }
 
 void via1() { //verificado
-    wb_motor_set_velocity(right_motor, -2);
-    wb_motor_set_velocity(left_motor, -2);
-    giro_();
+    //wb_motor_set_velocity(right_motor, -2);
+    //wb_motor_set_velocity(left_motor, -2);
+    //giro_();
     wb_inertial_unit_enable(iu, TIME_STEP);
     const double *val = wb_inertial_unit_get_roll_pitch_yaw(iu);
     //printf("yaw = %lf\n", val[2]);
@@ -524,9 +584,9 @@ void via1() { //verificado
 }
 
 void via1_tube() { //verificado
-    wb_motor_set_velocity(right_motor, -2);
-    wb_motor_set_velocity(left_motor, -2);
-    giro_();
+    //wb_motor_set_velocity(right_motor, -2);
+    //wb_motor_set_velocity(left_motor, -2);
+    //giro_();
     wb_inertial_unit_enable(iu, TIME_STEP);
     const double *val = wb_inertial_unit_get_roll_pitch_yaw(iu);
     //printf("yaw = %lf\n", val[2]);
@@ -810,6 +870,7 @@ int main(int argc, char **argv) {
     flds = wb_robot_get_device("FrontLeftDistanceSensor");
     ltds = wb_robot_get_device("LeftTopDistanceSensor");
     lbds = wb_robot_get_device("LeftBottomDistanceSensor");
+    fmds = wb_robot_get_device("FrontMiddleDistanceSensor");
     pos = wb_robot_get_device("EMPPositionSensor");
     right_camera = wb_robot_get_device("RightCamera");
     left_camera = wb_robot_get_device("LeftCamera");
@@ -823,6 +884,7 @@ int main(int argc, char **argv) {
     right_pos = wb_robot_get_device("RWpossensor");
     wb_distance_sensor_enable(frds, TIME_STEP);
     wb_distance_sensor_enable(flds, TIME_STEP);
+    wb_distance_sensor_enable(fmds, TIME_STEP);
     wb_distance_sensor_enable(ltds, TIME_STEP);
     wb_distance_sensor_enable(lbds, TIME_STEP);
     wb_position_sensor_enable(pos, TIME_STEP);
@@ -837,7 +899,9 @@ int main(int argc, char **argv) {
     wb_motor_set_velocity(right_motor, 0.0);
     wb_motor_set_velocity(empilhadeira, 0.0);   
     while(true) {
+        printf("stt vi0\n");
         vi0();
+        printf("ff vi0\n");
         via1(); 
         if(!via2()) {
             break;
@@ -895,6 +959,7 @@ int main(int argc, char **argv) {
             }
         }
         vi0_tubo();
+        printf("aodasij\n");
         via1_tube();
 
         while(wb_robot_step(TIME_STEP) != -1) {
@@ -927,7 +992,7 @@ int main(int argc, char **argv) {
                     wb_motor_set_velocity(right_motor, 2);
                     wb_motor_set_velocity(left_motor, 2);
                     j++;
-                    if((color_detected == 1 && j == 20) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 1)) {
+                    if((color_detected == 1 && j == 19) || (color_detected == 2 && j == 9) || (color_detected == 3 && j == 1)) {
                         wb_motor_set_velocity(right_motor, 0);
                         wb_motor_set_velocity(left_motor, 0);
                         break;
