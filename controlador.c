@@ -115,7 +115,7 @@ void entregar_tubo() { //verificado
         wb_motor_set_velocity(left_motor, -1);
         wb_motor_set_velocity(right_motor, -1);
  
-        if(frdsvalue > 250 && fldsvalue > 250){
+        if(frdsvalue > 200 && fldsvalue > 200){
             wb_motor_set_velocity(left_motor, 0);
             wb_motor_set_velocity(right_motor, 0);
  
@@ -130,7 +130,7 @@ void entregar_tubo() { //verificado
             int j = 0;
             while(wb_robot_step(TIME_STEP) != -1) {
                 j++;
-                if(j == 15) {
+                if(j == 20) {
                     break;
                 }
             }
@@ -565,7 +565,7 @@ int via2() { //verificado
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 5);
         wb_motor_set_velocity(left_motor, 5);
-        double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(frds);
+        double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(flds);
         if(dsl > 200 || dsr < 200) {
             wb_motor_set_velocity(right_motor, 0);
             wb_motor_set_velocity(left_motor, 0);
@@ -579,19 +579,24 @@ int via2() { //verificado
             return 0;
         }
     }
-    double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(frds), dsb = wb_distance_sensor_get_value(lbds);
+    double dsl = wb_distance_sensor_get_value(ltds), dsr = wb_distance_sensor_get_value(flds), dsb = wb_distance_sensor_get_value(lbds);
     if(dsl > 200) {
         if(dsb < 200 && dsr > 200) {
             return 1;
         } else if(dsb < 200 && dsr < 200) {
             giro_();
-            via2();
+            via2(); 
         } else {
-            wb_motor_set_velocity(right_motor, 2);
-            wb_motor_set_velocity(left_motor, 2);
             int j = 0;
-            for(int i = 0; i < 20000000; i++) {
+            while(wb_robot_step(TIME_STEP) != -1) {
+                wb_motor_set_velocity(right_motor, 2);
+                wb_motor_set_velocity(left_motor, 2);
                 j++;
+                if(j == 25) {
+                    wb_motor_set_velocity(right_motor, 0);
+                    wb_motor_set_velocity(left_motor, 0);
+                    break;
+                }
             }
             _giro();
             via2();
