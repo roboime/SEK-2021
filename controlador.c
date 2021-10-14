@@ -74,7 +74,7 @@ void pegar_tubo() { //verificado
                 double k = wb_position_sensor_get_value(pos);
                 //printf("%lf\n", k); 
                 wb_motor_set_velocity(empilhadeira, 0.3);
-                if(k > 0.17) {
+                if(k > 0.176) {
                     break;
                 }
             }
@@ -126,6 +126,13 @@ void entregar_tubo() { //verificado
                     wb_motor_set_velocity(empilhadeira, 0);
                     break;
                 }   
+            }
+            int j = 0;
+            while(wb_robot_step(TIME_STEP) != -1) {
+                j++;
+                if(j == 15) {
+                    break;
+                }
             }
             return;
         }
