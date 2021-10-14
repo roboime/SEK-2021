@@ -24,7 +24,7 @@ Robot {
         position 72.97122754235556
       }
       endPoint Solid {
-        translation 2.6697568161357594e-05 -0.1029286471813782 -0.06997085248065638
+        translation 2.6697568161357885e-05 -0.1029286471813782 -0.06997085248065638
         rotation -0.023038082811830646 0.0858206654720146 -0.9960442059056897 3.13738479478743
         children [
           DEF caster Shape {
@@ -37,7 +37,7 @@ Robot {
         ]
         boundingObject USE caster
         physics Physics {
-          density 15000
+          density 65000
         }
       }
     }
