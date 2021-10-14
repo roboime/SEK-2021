@@ -142,8 +142,7 @@ void entregar_tubo() { //verificado
 double odometria() { //verificado
     double tube; 
     double pos_inicial = wb_position_sensor_get_value(left_pos);
-
-    clock_t start = clock();
+ 
     printf("start %lf\n", pos_inicial);
  
     while(wb_robot_step(TIME_STEP) != -1) {
@@ -174,8 +173,6 @@ double odometria() { //verificado
             wb_motor_set_velocity(left_motor, 0);   
             wb_motor_set_velocity(right_motor, 0);
  
-            clock_t end = clock();
-            //tube = 2.0*(end - start) + 27;
             tube = (cur - pos_inicial) * 0.0374 * 100;
             if(tube < 10) {
                 if(!via2()) {
@@ -187,8 +184,7 @@ double odometria() { //verificado
         }
 
     }
- 
-    //clock_t end = clock();
+
     double end = wb_position_sensor_get_value(left_pos);
 
     tube = ((end - pos_inicial) * 0.0374) * 100;
