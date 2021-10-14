@@ -605,7 +605,7 @@ int via2() { //verificado
     wb_motor_set_velocity(left_motor, 0);
     return 1;
 }
- 
+
 void vit1() { //verificado
     double lbdsvalue = wb_distance_sensor_get_value(lbds);
     if(lbdsvalue < 200) {
@@ -865,11 +865,27 @@ int main(int argc, char **argv) {
         vit3_1();
         pegar_tubo();
         int j = 0;
+
+        while(wb_robot_step(TIME_STEP) != -1) {
+
+            rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
+            wb_motor_set_velocity(right_motor, -2);
+            wb_motor_set_velocity(left_motor, -2);
+
+            if((rc.r > 10000 && rc.r < 15000 && rc.g > 10000 && rc.g < 15000 && rc.b > 10000 && rc.b < 15000) || (lc.r > 10000 && lc.r < 15000 && lc.g > 10000 && lc.g < 15000 && lc.b > 10000 && lc.b < 15000)) {
+                wb_motor_set_velocity(right_motor, 0);
+                wb_motor_set_velocity(left_motor, 0);
+                break;
+            }
+        }
+
         while(wb_robot_step(TIME_STEP) != -1) {
             wb_motor_set_velocity(right_motor, -2);
             wb_motor_set_velocity(left_motor, -2);
-            j++;
-            if(j == 100) {
+            j++; 
+            if(j == 15){
+                wb_motor_set_velocity(right_motor, 0);
+                wb_motor_set_velocity(left_motor, 0);
                 break;
             }
         }
