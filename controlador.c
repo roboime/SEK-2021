@@ -74,7 +74,7 @@ void pegar_tubo() { //verificado
                 double k = wb_position_sensor_get_value(pos);
                 //printf("%lf\n", k); 
                 wb_motor_set_velocity(empilhadeira, 0.3);
-                if(k > 0.176) {
+                if(k > 0.179) {
                     break;
                 }
             }
@@ -107,6 +107,14 @@ void entregar_tubo() { //verificado
         }
     }
     
+    int j = 0;
+    while(wb_robot_step(TIME_STEP) != -1) {
+        j++;
+        if(j == 60) {
+            break;
+        }
+    }
+
     while(wb_robot_step(TIME_STEP) != -1) {
 
         double frdsvalue = wb_distance_sensor_get_value(frds);
@@ -126,13 +134,6 @@ void entregar_tubo() { //verificado
                     wb_motor_set_velocity(empilhadeira, 0);
                     break;
                 }   
-            }
-            int j = 0;
-            while(wb_robot_step(TIME_STEP) != -1) {
-                j++;
-                if(j == 60) {
-                    break;
-                }
             }
             return;
         }
@@ -444,7 +445,7 @@ void vi0() { //verificado
                 wb_motor_set_velocity(right_motor, -2);
                 wb_motor_set_velocity(left_motor, -2);
                 j++;
-                if(j == 55) {
+                if(j == 75) {
                     wb_motor_set_velocity(right_motor, 0);
                     wb_motor_set_velocity(left_motor, 0);
                     break;
@@ -491,8 +492,8 @@ void vi0() { //verificado
 void vi0_tubo() { //verificado
     viuchao = 0;
     while(wb_robot_step(TIME_STEP) != -1) {
-        wb_motor_set_velocity(right_motor, 5);
-        wb_motor_set_velocity(left_motor, 5);
+        wb_motor_set_velocity(right_motor, 3);
+        wb_motor_set_velocity(left_motor, 3);
         double dis = wb_distance_sensor_get_value(fmds);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         printf("right %d %d %d\n", rc.r, rc.g, rc.b);
@@ -503,7 +504,7 @@ void vi0_tubo() { //verificado
                 wb_motor_set_velocity(right_motor, -2);
                 wb_motor_set_velocity(left_motor, -2);
                 j++;
-                if(j == 55) {
+                if(j == 75) {
                     wb_motor_set_velocity(right_motor, 0);
                     wb_motor_set_velocity(left_motor, 0);
                     break;
