@@ -23,11 +23,11 @@ typedef struct _rgb {
 
 rgb verde_min = {1000, 12000, 1000}, verde_max = {10000, 14000, 10000};
 
-rgb getrgbs(WbDeviceTag camera) {
+rgb getrgbs(WbDeviceTag camera) { //função para pegar a soma de todos os rgbs que a camera vê, 8 x 8 pixels
     const unsigned char *image = wb_camera_get_image(camera);
     rgb ans = {0, 0, 0};
     for(int i = 0; i < width; i++) {
-        for(int j = 0; j < height; j++) {
+        for(int j = 0; j < height; j++) { //esse loop pega os valores de rgb de cada pixel e adiciona à estrutura
             ans.r += wb_camera_image_get_red(image, width, i, j);
             ans.g += wb_camera_image_get_green(image, width, i, j);
             ans.b += wb_camera_image_get_blue(image, width, i, j);
@@ -36,7 +36,7 @@ rgb getrgbs(WbDeviceTag camera) {
     return ans;
 }
 
-void pegar_tubo() { //verificado
+void pegar_tubo() { //função para pegar cano
 
     while(wb_robot_step(TIME_STEP) != -1) {
         
@@ -45,7 +45,7 @@ void pegar_tubo() { //verificado
         wb_motor_set_velocity(left_motor, 1);
         wb_motor_set_velocity(right_motor, 1);
         
-        if(frdsvalue < 75 && fldsvalue < 75) {
+        if(frdsvalue < 75 && fldsvalue < 75)  //fazer o robô andar reto até chegar próximo ao cano, quando irá abaixar a empilhadeira
             //printf("oi");
             wb_motor_set_velocity(left_motor, 0);
             wb_motor_set_velocity(right_motor, 0);
@@ -60,7 +60,7 @@ void pegar_tubo() { //verificado
             break;
         }    
     }
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //quando chegar perto o suficiente, irá subir a garra
         wb_motor_set_velocity(left_motor, 0.5);
         wb_motor_set_velocity(right_motor, 0.5);
         double frdsvalue = wb_distance_sensor_get_value(frds);
@@ -85,9 +85,9 @@ void pegar_tubo() { //verificado
     }
 }
 
-void entregar_tubo() { //verificado
+void entregar_tubo() { //função para colocar o cano no tubo
     
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //andar reto até chegar em uma distância que a garra possa colocar o cano
         double fldsvalue = wb_distance_sensor_get_value(flds);
         double frdsvalue = wb_distance_sensor_get_value(frds);
         wb_motor_set_velocity(right_motor, 1);
@@ -98,7 +98,7 @@ void entregar_tubo() { //verificado
             break;
         }
     }
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //descer
         double k = wb_position_sensor_get_value(pos);
         wb_motor_set_velocity(empilhadeira, -0.3);
         if(k < 0.014) {
@@ -108,14 +108,14 @@ void entregar_tubo() { //verificado
     }
     
     int j = 0;
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //espera, para o cano estabilizar
         j++;
         if(j == 60) {
             break;
         }
     }
 
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //recuar
 
         double frdsvalue = wb_distance_sensor_get_value(frds);
         double fldsvalue = wb_distance_sensor_get_value(flds);
@@ -140,7 +140,7 @@ void entregar_tubo() { //verificado
     }
 }
  
-double odometria() { //verificado
+double odometria() { //o próprio nome já diz, ele fará a conta sabendo quantos radianos a roda girou enquanto via espaço vazio no sensor lateral
     double tube; 
     double pos_inicial = wb_position_sensor_get_value(left_pos);
 
@@ -154,14 +154,14 @@ double odometria() { //verificado
         wb_motor_set_velocity(left_motor, 2);
         wb_motor_set_velocity(right_motor, 2);
  
-        if(ltdsvalue < 200) {
+        if(ltdsvalue < 200) { //se a tubulação recomeça
             wb_motor_set_velocity(left_motor, 0);   
             wb_motor_set_velocity(right_motor, 0);
 
             break;
         }
 
-        if(lbdsvalue > 150) {
+        if(lbdsvalue > 150) { //se a tubulação dá um zig-zag
             wb_motor_set_velocity(left_motor, 0);   
             wb_motor_set_velocity(right_motor, 0);
             break;
@@ -170,7 +170,7 @@ double odometria() { //verificado
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
         rgb avg = {(lc.r + rc.r) / 2, (lc.g + rc.g) / 2, (lc.b + rc.b) / 2};
  
-        if(avg.b < 7000 && avg.r < 9000 && avg.g < 8000) {
+        if(avg.b < 7000 && avg.r < 9000 && avg.g < 8000) { //caso veja chão, não foi feito do novo jeito nessa função
             wb_motor_set_velocity(left_motor, 0);   
             wb_motor_set_velocity(right_motor, 0);
  
@@ -199,7 +199,7 @@ double odometria() { //verificado
     return tube; 
 }
  
-void alinhar_chao() {//verificado
+void alinhar_chao() { //função para teóricamente alinhar o robô com o lado, mas acabou em desuso por causa de problemas no simulador
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 2);
         wb_motor_set_velocity(left_motor, 2);
@@ -264,7 +264,7 @@ void alinhar_chao() {//verificado
     }
 }
  
-void alinhar(rgb min, rgb max) { //verificado
+void alinhar(rgb min, rgb max) { //a função teoricamente alinha o robô com um range de cor que você especificar, mas acabamos não aperfeiçoando tão bem assim
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 4);
         wb_motor_set_velocity(left_motor, 4);
@@ -330,7 +330,7 @@ void alinhar(rgb min, rgb max) { //verificado
     }
 }
  
-void desviar() {
+void desviar() { //acabou não sendo usado
     rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
     if(rc.g < 5800 && rc.b < 5800 && rc.r < 5800) {
         while(wb_robot_step(TIME_STEP) != -1) {
@@ -353,7 +353,7 @@ void desviar() {
     return;
 }
  
-void giro_() { //verificado
+void giro_() { //um giro a direita, as funções de giro acabaram ficando bem complicadas por causa de, novamente, problemas com o simulador
     wb_motor_set_velocity(right_motor, -0.5);
     wb_motor_set_velocity(left_motor, 0.5);
     wb_inertial_unit_enable(iu, TIME_STEP);
@@ -389,7 +389,7 @@ void giro_() { //verificado
     return;
 }
 
-void _giro() { //verificado
+void _giro() { //giro à esquerda
     wb_motor_set_velocity(right_motor, 0.5);
     wb_motor_set_velocity(left_motor, -0.5);
     wb_inertial_unit_enable(iu, TIME_STEP);
@@ -425,13 +425,13 @@ void _giro() { //verificado
     return;
 }
  
-void _giro_() { //verificado
+void _giro_() { //giro 180
     giro_();
     giro_();
     return;
 }
  
-void vi0() { //verificado
+void vi0() { //primeira VI, o objetivo dela é ir para o canto da pista e depois virar a direita, como intenção de chegar até a tubulação
     wb_motor_set_position(empilhadeira, INFINITY);
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 8);
@@ -489,7 +489,7 @@ void vi0() { //verificado
     }
 }
 
-void vi0_tubo() { //verificado
+void vi0_tubo() { //a mesma coisa de antes porém com a restrição de andar devagar para não tombar
     viuchao = 0;
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 3);
@@ -548,14 +548,14 @@ void vi0_tubo() { //verificado
     }
 }
 
-void via1() { //verificado
+void via1() { //função para chegar até a tubulação
     //wb_motor_set_velocity(right_motor, -2);
     //wb_motor_set_velocity(left_motor, -2);
     //giro_();
     wb_inertial_unit_enable(iu, TIME_STEP);
     const double *val = wb_inertial_unit_get_roll_pitch_yaw(iu);
     //printf("yaw = %lf\n", val[2]);
-    if(val[2] <= -1.5 && val[2] >= -1.6) {
+    if(val[2] <= -1.5 && val[2] >= -1.6) { //será que isso daqui tava causando problema?? nunca deu merda aqui...
         vi0();
     }
     wb_inertial_unit_disable(iu);
@@ -580,7 +580,7 @@ void via1() { //verificado
     giro_();
 }
 
-void via1_tube() { //verificado
+void via1_tube() { //a mesma coisa de antes porém com a restrição de andar devagar ao longo da rampa, pois se andasse um pouco mais rápido o nosso robô iria tombar
     //wb_motor_set_velocity(right_motor, -2);
     //wb_motor_set_velocity(left_motor, -2);
     //giro_();
@@ -618,7 +618,7 @@ void via1_tube() { //verificado
     giro_();
 }
 
-int via2() { //verificado
+int via2() { //andar ao longo da tubulação até encontrar um espaço vazio ou descobrir que está completo
     while(wb_robot_step(TIME_STEP) != -1) {
         wb_motor_set_velocity(right_motor, 5);
         wb_motor_set_velocity(left_motor, 5);
@@ -668,12 +668,12 @@ int via2() { //verificado
     return 1;
 }
 
-void vit1() { //verificado
+void vit1() { //voltar para a área de coleta, isso daqui poderia teoricamente ser feito por um outro robô
     double lbdsvalue = wb_distance_sensor_get_value(lbds);
     if(lbdsvalue < 200) {
         giro_();
     }
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //andar até chegar naquela faixa preta, teoricamente
         wb_motor_set_velocity(right_motor, 8);
         wb_motor_set_velocity(left_motor, 8);
         rgb lc = getrgbs(left_camera), rc = getrgbs(right_camera);
@@ -689,10 +689,10 @@ void vit1() { //verificado
     alinhar(mn, mx);
 }
  
-void vit3(rgb cor_min, rgb cor_max) { //verificado
+void vit3(rgb cor_min, rgb cor_max) { //andar pela área dos canos até achar o que precisa
     _giro();
-    d180 = 1;
-    while(wb_robot_step(TIME_STEP) != -1) {
+    d180 = 1; //d180 = 1 -> quer dizer que os sensores de distância estão virados para o outro lado, sem ser para os canos
+    while(wb_robot_step(TIME_STEP) != -1) { //chegar até o final
         wb_motor_set_velocity(right_motor, 4);
         wb_motor_set_velocity(left_motor, 4);
         rgb rrc = getrgbs(right_camera), llc = getrgbs(left_camera);
@@ -703,7 +703,7 @@ void vit3(rgb cor_min, rgb cor_max) { //verificado
             break;
         }
     }
-    while(wb_robot_step(TIME_STEP) != -1) {
+    while(wb_robot_step(TIME_STEP) != -1) { //procurando a cor
         wb_motor_set_velocity(right_motor, 4);
         wb_motor_set_velocity(left_motor, 4);
         rgb rc = getrgbs(right_camera), lc = getrgbs(left_camera);
@@ -800,7 +800,7 @@ void vit3(rgb cor_min, rgb cor_max) { //verificado
     }
 }
 
-void vit3_1() {
+void vit3_1() { //função para achar o tubo dentro da cor especificada
     if(d180) {
         rgb rinit = getrgbs(right_camera);
         while(wb_robot_step(TIME_STEP) != -1) {
